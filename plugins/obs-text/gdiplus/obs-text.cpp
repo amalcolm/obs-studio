@@ -652,11 +652,51 @@ const char *TextSource::GetMainString(const char *str)
 	return *temp == '\n' ? temp + 1 : temp;
 }
 
+
+
+
+static std::wstring Replace_env_vars(const std::wstring &input)
+{
+	std::wstring result = input;
+
+	size_t pos = 0;
+	while ((pos = result.find(L"$(", pos)) != std::wstring::npos)
+	{
+		size_t end_pos = result.find(L")", pos);
+		if (end_pos != std::wstring::npos)
+		{
+			std::wstring w_var_name = result.substr(pos + 2, end_pos - pos - 2);
+
+			            // Convert wide string to narrow string for std::getenv
+			std::string var_name;
+			for (wchar_t c : w_var_name) {
+				// Handle potential encoding issues with std::locale
+				var_name +=
+					std::use_facet<std::ctype<wchar_t>>(
+						std::locale())
+						.narrow(c, '\0');
+			}
+
+//			std::string    var_name = std::string(w_var_name.begin(), w_var_name.end());  // fails with warning in xstring
+
+			const char *env = std::getenv(var_name.c_str());
+
+			if (env)
+				result.replace(pos, end_pos - pos + 1, to_wide(env));
+
+			pos = end_pos + 1; // Move past the closing ')'
+			
+		} else 
+			break; // No closing ')' found
+	}
+
+	return result;
+}
+
 void TextSource::LoadFileText()
 {
 	BPtr<char> file_text = os_quick_read_utf8_file(file.c_str());
-	text = to_wide(GetMainString(file_text));
-
+	text = Replace_env_vars(to_wide(GetMainString(file_text)));
 	if (!text.empty() && text.back() != '\n')
 		text.push_back('\n');
 }
@@ -798,7 +838,7 @@ inline void TextSource::Update(obs_data_t *s)
 		LoadFileText();
 
 	} else {
-		text = to_wide(GetMainString(new_text));
+		text = Replace_env_vars(to_wide(GetMainString(new_text)));
 
 		/* all text should end with newlines due to the fact that GDI+
 		 * treats strings without newlines differently in terms of

@@ -57,6 +57,13 @@ static char **convert_string_list(vector<string> &strings)
 
 /* ------------------------------------------------------------------------- */
 
+void* obs_frontend_set_main_window_size_and_pos(int x, int y, int cx, int cy)
+{
+	return !!callbacks_valid() ? c->obs_frontend_set_main_window_size_and_pos(
+					   x, y, cx, cy)
+				   : nullptr;
+}
+
 void *obs_frontend_get_main_window(void)
 {
 	return !!callbacks_valid() ? c->obs_frontend_get_main_window()
