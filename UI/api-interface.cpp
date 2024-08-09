@@ -58,6 +58,32 @@ struct OBSStudioAPI : obs_frontend_callbacks {
 
 	inline OBSStudioAPI(OBSBasic *main_) : main(main_) {}
 
+	void *obs_frontend_set_main_window_size_and_pos(int x, int y, int cx,int cy) override
+	{
+		if ((cx == -1) && (cy == -1)) {
+			if (main->isVisible())
+				main->hide();
+			return nullptr;
+		}
+
+		if (main->isVisible() == false)
+			main->show();
+
+		auto pos = main->pos();
+		if (pos.x() != x || pos.y() != y)
+			main->move(x, y);
+
+		if (cx == 0 || cy == 0)
+			return __nullptr;
+
+		auto size = main->size();
+		if (size.width() != cx || size.height() != cy)
+			main->resize(cx, cy);
+
+		
+		return nullptr;
+	}
+
 	void *obs_frontend_get_main_window(void) override
 	{
 		return (void *)main;
