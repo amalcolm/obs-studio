@@ -10,3 +10,6 @@
 [submodule "plugins/obs-websocket"]
 	path = plugins/obs-websocket
 	url = https://github.com/amalcolm/obs-websocket.git
+[submodule "plugins/source-record"]
+	path = plugins/source-record
+	url = https://github.com/amalcolm/source-record.git
